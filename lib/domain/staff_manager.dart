@@ -67,13 +67,72 @@ class StaffManager {
     }).toList();
   }
 
-  // Approve overtime without printing (domain should not produce console output)
-  void approveOvertime(Staff staff, int hours) {
+  // Approve overtime with validation on date and hours, and sensible rate defaults
+  void approveOvertime(
+    Staff staff,
+    {
+      required DateTime date,
+      required int hours,
+      double? rate,
+    }
+  ) {
+    // Basic hours validation
+    if (hours <= 0) {
+      throw ArgumentError('Overtime hours must be greater than 0');
+    }
+    if (hours > 16) {
+      throw ArgumentError('Overtime hours cannot exceed 16 hours per day');
+    }
+
+    // Date validations: not in future, not older than 30 days
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final otDay = DateTime(date.year, date.month, date.day);
+
+    if (otDay.isAfter(today)) {
+      throw ArgumentError('Overtime date cannot be in the future');
+    }
+
+    final daysDifference = today.difference(otDay).inDays;
+    if (daysDifference > 30) {
+      throw ArgumentError('Overtime date is older than 30 days');
+    }
+
+    // Prevent duplicate overtime entries for the same staff on the same date
+    final hasSameDay = staff.overtimeList.any((ot) {
+      final d = ot.date;
+      return d.year == otDay.year && d.month == otDay.month && d.day == otDay.day;
+    });
+    if (hasSameDay) {
+      throw StateError('Overtime already approved for this date');
+    }
+
+    // Determine rate: allow override via parameter; otherwise choose a sensible default
+    double resolvedRate;
+    if (rate != null && rate > 0) {
+      resolvedRate = rate;
+    } else {
+      // Simple role-based defaults via runtimeType
+      final typeName = staff.runtimeType.toString().toLowerCase();
+      if (typeName.contains('doctor')) {
+        resolvedRate = 15.0;
+      } else if (typeName.contains('nurse')) {
+        resolvedRate = 10.0;
+      } else {
+        // admin or others
+        resolvedRate = 8.0;
+      }
+      // Weekend premium +25%
+      final isWeekend = otDay.weekday == DateTime.saturday || otDay.weekday == DateTime.sunday;
+      if (isWeekend) {
+        resolvedRate = resolvedRate * 1.25;
+      }
+    }
+
     final overtime = Overtime(
-      overtimeId: "OT-${DateTime.now().millisecondsSinceEpoch}",
-      date: DateTime.now(),
+      date: otDay,
       hours: hours,
-      rate: 5,
+      rate: resolvedRate,
     );
     staff.addOvertime(overtime);
   }

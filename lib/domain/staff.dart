@@ -62,4 +62,41 @@ class Staff {
   String displayInfo() {
     return "ID: $_staffId | Name: $_name | Salary: ${calculateSalary()}";
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': runtimeType.toString(),
+      'staffId': _staffId,
+      'displayId': _displayId,
+      'name': _name,
+      'email': _email,
+      'phoneNum': _phoneNum,
+      'gender': _gender.toString().split('.').last,
+      'baseSalary': _baseSalary,
+      'bonusSalary': _bonusSalary,
+      'experienceYear': _experienceYear,
+      'overtime': _overtimeList.map((ot) => ot.toJson()).toList(),
+    };
+  }
+
+  factory Staff.fromJson(Map<String, dynamic> json) {
+    final staff = Staff(
+      staffId: json['staffId'] as String?,
+      displayId: json['displayId'] as int,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      phoneNum: json['phoneNum'] as String,
+      gender: (json['gender'] as String).toLowerCase() == 'male' ? Gender.male : Gender.female,
+      baseSalary: (json['baseSalary'] as num).toDouble(),
+      bonusSalary: (json['bonusSalary'] as num).toDouble(),
+      experienceYear: json['experienceYear'] as int,
+    );
+    final otList = (json['overtime'] as List<dynamic>? ?? [])
+        .map((e) => Overtime.fromJson(e as Map<String, dynamic>))
+        .toList();
+    for (final ot in otList) {
+      staff.addOvertime(ot);
+    }
+    return staff;
+  }
 }

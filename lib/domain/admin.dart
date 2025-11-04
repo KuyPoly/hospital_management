@@ -3,10 +3,10 @@ import 'staff.dart';
 enum Position { accountant, receptionist }
 
 class Admin extends Staff {
-  Position position;
+  final Position _position;
 
   Admin({
-    required super.staffId,
+    super.staffId,
     required super.displayId,
     required super.name,
     required super.email,
@@ -15,6 +15,8 @@ class Admin extends Staff {
     required super.baseSalary,
     required super.bonusSalary,
     required super.experienceYear,
-    required this.position,
-  });
+    required Position position,
+  }) : _position = position;
+
+  Position get position => _position;
 }

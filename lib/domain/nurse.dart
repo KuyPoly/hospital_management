@@ -1,10 +1,10 @@
 import 'staff.dart';
 
 class Nurse extends Staff {
-  String shift;
+  final String _shift;
 
   Nurse({
-    required super.staffId,
+    super.staffId,
     required super.displayId,
     required super.name,
     required super.email,
@@ -13,6 +13,8 @@ class Nurse extends Staff {
     required super.baseSalary,
     required super.bonusSalary,
     required super.experienceYear,
-    required this.shift,
-  });
+    required String shift,
+  }) : _shift = shift;
+
+  String get shift => _shift;
 }

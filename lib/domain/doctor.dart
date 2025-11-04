@@ -1,10 +1,10 @@
 import 'staff.dart';
 
 class Doctor extends Staff {
-  String specialization;
+  final String _specialization;
 
   Doctor({
-    required super.staffId,
+    super.staffId,
     required super.displayId,
     required super.name,
     required super.email,
@@ -13,6 +13,8 @@ class Doctor extends Staff {
     required super.baseSalary,
     required super.bonusSalary,
     required super.experienceYear,
-    required this.specialization,
-  });
+    required String specialization,
+  }) : _specialization = specialization;
+
+  String get specialization => _specialization;
 }

@@ -1,17 +1,28 @@
+import 'package:uuid/uuid.dart';
+
 class Overtime {
-  final String overtimeId;
-  final int hours;
-  final double rate;
-  final DateTime date;
+  static final Uuid _uuid = Uuid();
+
+  final String _overtimeId;
+  final int _hours;
+  final double _rate;
+  final DateTime _date;
 
   Overtime({
-    required this.overtimeId, 
-    required this.date, 
-    required this.hours, 
-    required this.rate,
-  });
+    required DateTime date,
+    required int hours,
+    required double rate,
+  })  : _overtimeId = _uuid.v4(),
+        _date = date,
+        _hours = hours,
+        _rate = rate;
 
-  double calculateOvertimePay(Overtime overtime) {
-    return overtime.hours * overtime.rate;
+  String get overtimeId => _overtimeId;
+  int get hours => _hours;
+  double get rate => _rate;
+  DateTime get date => _date;
+
+  double calculateOvertimePay() {
+    return _hours * _rate;
   }
 }

@@ -1,42 +1,65 @@
+import 'package:uuid/uuid.dart';
 import 'overtime.dart';
 enum Gender { male, female }
-enum Role { Doctor, Nurse, Administration_staff }
+enum Role { doctor, nurse, administrationStaff }
 
 class Staff {
-  String staffId;
-  int displayId;
-  String name;
-  String email;
-  String phoneNum;
-  Gender gender;
-  double baseSalary;
-  double bonusSalary;
-  int experienceYear;
-  List<Overtime> overtimeList = [];
+  static final Uuid _uuid = Uuid();
+
+  final String _staffId;
+  final int _displayId;
+  final String _name;
+  final String _email;
+  final String _phoneNum;
+  final Gender _gender;
+  final double _baseSalary;
+  final double _bonusSalary;
+  final int _experienceYear;
+  final List<Overtime> _overtimeList = [];
 
   Staff({
-    required this.staffId,
-    required this.displayId,
-    required this.name,
-    required this.email,
-    required this.phoneNum,
-    required this.gender,
-    required this.baseSalary,
-    required this.bonusSalary,
-    required this.experienceYear,
-  });
+    String? staffId,
+    required int displayId,
+    required String name,
+    required String email,
+    required String phoneNum,
+    required Gender gender,
+    required double baseSalary,
+    required double bonusSalary,
+    required int experienceYear,
+  })  : _staffId = staffId ?? _uuid.v4(),
+        _displayId = displayId,
+        _name = name,
+        _email = email,
+        _phoneNum = phoneNum,
+        _gender = gender,
+        _baseSalary = baseSalary,
+        _bonusSalary = bonusSalary,
+        _experienceYear = experienceYear;
+
+  // Getters
+  String get staffId => _staffId;
+  int get displayId => _displayId;
+  String get name => _name;
+  String get email => _email;
+  String get phoneNum => _phoneNum;
+  Gender get gender => _gender;
+  double get baseSalary => _baseSalary;
+  double get bonusSalary => _bonusSalary;
+  int get experienceYear => _experienceYear;
+  List<Overtime> get overtimeList => List.unmodifiable(_overtimeList);
 
   void addOvertime(Overtime ot) {
-    overtimeList.add(ot);
+    _overtimeList.add(ot);
   }
 
   double calculateSalary() {
-    double overtimePay = overtimeList.fold(0, (sum, ot) => sum + ot.calculateOvertimePay());
-    double experienceBonus = experienceYear * 20;
-    return baseSalary + overtimePay + bonusSalary + experienceBonus;
+    double overtimePay = _overtimeList.fold(0.0, (sum, ot) => sum + ot.calculateOvertimePay());
+    double experienceBonus = _experienceYear * 20;
+    return _baseSalary + overtimePay + _bonusSalary + experienceBonus;
   }
 
-  void displayInfo() {
-    print("ID: $staffId | Name: $name | Salary: ${calculateSalary()}");
+  String displayInfo() {
+    return "ID: $_staffId | Name: $_name | Salary: ${calculateSalary()}";
   }
 }

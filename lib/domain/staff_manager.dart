@@ -3,46 +3,78 @@ import 'department.dart';
 import 'overtime.dart';
 
 class StaffManager {
-  List<Staff> staffList = [];
+  final List<Staff> _staffList = [];
 
-  void viewStaff() {
-    for (var s in staffList) {
-      s.displayInfo();
-    }
+  // Public read-only view of staff list
+  List<Staff> get staffList => List.unmodifiable(_staffList);
+
+  // Return display strings for UI to use (domain layer does not print)
+  List<String> viewStaffInfo() {
+    return _staffList.map((s) => s.displayInfo()).toList();
   }
 
   void addStaff(Staff staff) {
-    staffList.add(staff);
-    print("${staff.name} added successfully!");
+    _staffList.add(staff);
   }
 
   void removeStaff(Staff staff) {
-    staffList.remove(staff);
-    print("${staff.name} removed successfully!");
+    _staffList.remove(staff);
   }
 
-  int getStaffCount() => staffList.length;
+  int getStaffCount() => _staffList.length;
 
   Staff? findStaffById(String id) {
-    return staffList.firstWhere((s) => s.staffId == id, orElse: () => null);
+    for (var s in _staffList) {
+      if (s.staffId == id) return s;
+    }
+    return null;
   }
 
+  // Improved department filter: attempts common field names then fallback to name matching
   List<Staff> filterStaffByDepartment(String deptName) {
-    return staffList.where((s) => s.name.contains(deptName)).toList();
+    final q = deptName.toLowerCase();
+    return _staffList.where((s) {
+      try {
+        final dep = (s as dynamic).department;
+        if (dep != null) {
+          final depName = (dep.name ?? dep.toString()).toString().toLowerCase();
+          if (depName.contains(q)) return true;
+        }
+      } catch (_) {}
+      try {
+        final depNameField = (s as dynamic).departmentName;
+        if (depNameField != null && depNameField.toString().toLowerCase().contains(q)) return true;
+      } catch (_) {}
+      return s.name.toLowerCase().contains(q);
+    }).toList();
   }
 
-  List<Staff> findStaffByRole(Position pos) {
-    return staffList.whereType<Admin>().where((a) => a.position == pos).toList();
+  // Role-based lookup using Role enum; flexible checks for position/role fields or runtimeType
+  List<Staff> findStaffByRole(Role role) {
+    final q = role.toString().split('.').last.toLowerCase();
+    return _staffList.where((s) {
+      try {
+        final p = (s as dynamic).position;
+        if (p == role) return true;
+        if (p != null && p.toString().toLowerCase().contains(q)) return true;
+      } catch (_) {}
+      try {
+        final r = (s as dynamic).role;
+        if (r != null && r.toString().toLowerCase().contains(q)) return true;
+      } catch (_) {}
+      final typeName = s.runtimeType.toString().toLowerCase();
+      return typeName.contains(q);
+    }).toList();
   }
 
-  void approveOvertime(Staff staff, int h) {
-    var overtime = Overtime(
+  // Approve overtime without printing (domain should not produce console output)
+  void approveOvertime(Staff staff, int hours) {
+    final overtime = Overtime(
       overtimeId: "OT-${DateTime.now().millisecondsSinceEpoch}",
-      hour: h,
-      rate: 5,
       date: DateTime.now(),
+      hours: hours,
+      rate: 5,
     );
     staff.addOvertime(overtime);
-    print("Approved $h overtime hours for ${staff.name}");
   }
 }

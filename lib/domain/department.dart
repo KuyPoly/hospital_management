@@ -1,19 +1,29 @@
+import 'package:uuid/uuid.dart';
 import 'staff.dart';
 
 class Department {
-  String depId;
-  String name;
-  String desc;
-  List<Staff> staffList = [];
+  static final Uuid _uuid = Uuid();
+
+  final String _depId;
+  final String _name;
+  final String _desc;
+  final List<Staff> _staffList = [];
 
   Department({
-    required this.depId,
-    required this.name,
-    required this.desc,
-  });
+    String? depId,
+    required String name,
+    required String desc,
+  })  : _depId = depId ?? _uuid.v4(),
+        _name = name,
+        _desc = desc;
 
+  String get depId => _depId;
+  String get name => _name;
+  String get desc => _desc;
+  List<Staff> get staffList => List.unmodifiable(_staffList);
+
+  // Adds staff to the given department
   void assignDepartment(Staff staff, Department dept) {
-    dept.staffList.add(staff);
-    print("${staff.name} has been assigned to ${dept.name}");
+    dept._staffList.add(staff);
   }
 }

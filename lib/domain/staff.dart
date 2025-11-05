@@ -16,6 +16,7 @@ class Staff {
   final double _bonusSalary;
   final int _experienceYear;
   final List<Overtime> _overtimeList = [];
+  String? _departmentId;
 
   Staff({
     String? staffId,
@@ -27,6 +28,7 @@ class Staff {
     required double baseSalary,
     required double bonusSalary,
     required int experienceYear,
+    String? departmentId,
   })  : _staffId = staffId ?? _uuid.v4(),
         _displayId = displayId,
         _name = name,
@@ -35,7 +37,8 @@ class Staff {
         _gender = gender,
         _baseSalary = baseSalary,
         _bonusSalary = bonusSalary,
-        _experienceYear = experienceYear;
+        _experienceYear = experienceYear,
+        _departmentId = departmentId;
 
   // Getters
   String get staffId => _staffId;
@@ -48,6 +51,8 @@ class Staff {
   double get bonusSalary => _bonusSalary;
   int get experienceYear => _experienceYear;
   List<Overtime> get overtimeList => List.unmodifiable(_overtimeList);
+  String? get departmentId => _departmentId;
+  set departmentId(String? value) { _departmentId = value; }
 
   void addOvertime(Overtime ot) {
     _overtimeList.add(ot);
@@ -57,10 +62,6 @@ class Staff {
     double overtimePay = _overtimeList.fold(0.0, (sum, ot) => sum + ot.calculateOvertimePay());
     double experienceBonus = _experienceYear * 20;
     return _baseSalary + overtimePay + _bonusSalary + experienceBonus;
-  }
-
-  String displayInfo() {
-    return "ID: $_staffId | Name: $_name | Salary: ${calculateSalary()}";
   }
 
   Map<String, dynamic> toJson() {
@@ -75,6 +76,7 @@ class Staff {
       'baseSalary': _baseSalary,
       'bonusSalary': _bonusSalary,
       'experienceYear': _experienceYear,
+      'departmentId': _departmentId,
       'overtime': _overtimeList.map((ot) => ot.toJson()).toList(),
     };
   }
@@ -90,6 +92,7 @@ class Staff {
       baseSalary: (json['baseSalary'] as num).toDouble(),
       bonusSalary: (json['bonusSalary'] as num).toDouble(),
       experienceYear: json['experienceYear'] as int,
+      departmentId: json['departmentId'] as String?,
     );
     final otList = (json['overtime'] as List<dynamic>? ?? [])
         .map((e) => Overtime.fromJson(e as Map<String, dynamic>))

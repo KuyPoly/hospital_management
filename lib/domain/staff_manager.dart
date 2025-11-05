@@ -1,16 +1,25 @@
+import 'dart:convert';
+import 'dart:io';
 import 'staff.dart';
 import 'department.dart';
 import 'overtime.dart';
+import 'doctor.dart';
+import 'nurse.dart';
+import 'admin.dart';
 
 class StaffManager {
   final List<Staff> _staffList = [];
+  final List<Department> _departmentList = [];
 
   // Public read-only view of staff list
   List<Staff> get staffList => List.unmodifiable(_staffList);
+  
+  // Public read-only view of department list
+  List<Department> get departmentList => List.unmodifiable(_departmentList);
 
-  // Return display strings for UI to use (domain layer does not print)
-  List<String> viewStaffInfo() {
-    return _staffList.map((s) => s.displayInfo()).toList();
+  // Return staff list for UI to use
+  List<Staff> viewStaffInfo() {
+    return List.unmodifiable(_staffList);
   }
 
   void addStaff(Staff staff) {
@@ -135,5 +144,69 @@ class StaffManager {
       rate: resolvedRate,
     );
     staff.addOvertime(overtime);
+  }
+
+  // -------------------------------
+  // Persistence (JSON file IO)
+  // -------------------------------
+
+  // Load staff list from a JSON file at filePath.
+  // Expected format: { "staff": [ { ... staff json ... }, ... ] }
+  void loadFromJsonFile(String filePath) {
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      _staffList.clear();
+      return;
+    }
+
+    final content = file.readAsStringSync();
+    if (content.trim().isEmpty) {
+      _staffList.clear();
+      return;
+    }
+
+    final decoded = jsonDecode(content);
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Root JSON must be an object');
+    }
+
+    final rawList = decoded['staff'];
+    if (rawList is! List) {
+      _staffList.clear();
+      return;
+    }
+
+    _staffList
+      ..clear()
+      ..addAll(rawList
+          .whereType<Map<String, dynamic>>()
+          .map(_staffFromJson));
+  }
+
+  // Save current staff list to a JSON file at filePath.
+  // Format: { "staff": [ ... ] }
+  void saveToJsonFile(String filePath) {
+    final file = File(filePath);
+    final data = <String, dynamic>{
+      'staff': _staffList.map((s) => s.toJson()).toList(),
+    };
+    file.createSync(recursive: true);
+    final encoder = const JsonEncoder.withIndent('  ');
+    file.writeAsStringSync(encoder.convert(data));
+  }
+
+  // Internal helper: build the correct Staff subtype from JSON using the 'type' field
+  Staff _staffFromJson(Map<String, dynamic> json) {
+    final type = (json['type'] as String?)?.toLowerCase();
+    switch (type) {
+      case 'doctor':
+        return Doctor.fromJson(json);
+      case 'nurse':
+        return Nurse.fromJson(json);
+      case 'admin':
+        return Admin.fromJson(json);
+      default:
+        return Staff.fromJson(json);
+    }
   }
 }

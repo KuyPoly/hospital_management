@@ -100,7 +100,7 @@ class StaffService {
     Staff newStaff;
     if (newRole == 'doctor') {
       final spec = (specialization ?? '').trim();
-      if (spec.isEmpty && !(old is Doctor)) throw ArgumentError('Specialization required for doctor');
+      if (spec.isEmpty && (old is! Doctor)) throw ArgumentError('Specialization required for doctor');
       newStaff = Doctor(
         staffId: old.staffId,
         name: name,
@@ -143,7 +143,9 @@ class StaffService {
     }
 
     // copy overtime and bonus
-    for (final ot in old.overtimeList) newStaff.addOvertime(ot);
+    for (final ot in old.overtimeList) {
+      newStaff.addOvertime(ot);
+    }
     if (old.bonusSalary > 0) newStaff.addBonus(old.bonusSalary);
     return newStaff;
   }

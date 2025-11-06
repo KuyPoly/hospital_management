@@ -58,5 +58,20 @@
     "departmentId": null,
     "overtime": [],
     "shift": "night"
+  },
+  {
+    "type": "doctor",
+    "staffId": "2f7bbe8f-6fc5-4ecc-a913-3f81d4b6874d",
+    "name": "Kuy Poly",
+    "email": "kuyply@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "female",
+    "role": "doctor",
+    "baseSalary": 1443.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 2,
+    "departmentId": "fa80a709-4d21-4033-a89f-614cb29f3eb1",
+    "overtime": [],
+    "specialization": "Eye"
   }
 ]

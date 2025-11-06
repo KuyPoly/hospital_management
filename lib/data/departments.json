@@ -3,7 +3,9 @@
     "depId": "fa80a709-4d21-4033-a89f-614cb29f3eb1",
     "type": "emergencyCare",
     "desc": "24/7 Emergency",
-    "staffIds": []
+    "staffIds": [
+      "2f7bbe8f-6fc5-4ecc-a913-3f81d4b6874d"
+    ]
   },
   {
     "depId": "2b3c4d5e-...-0002",

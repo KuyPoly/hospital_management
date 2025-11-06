@@ -10,7 +10,7 @@
     "baseSalary": 1500.0,
     "bonusSalary": 0.0,
     "experienceYear": 2,
-    "departmentId": "2b3c4d5e-...-0003",
+    "departmentId": null,
     "overtime": [],
     "specialization": "Bone"
   },
@@ -25,8 +25,38 @@
     "baseSalary": 1500.0,
     "bonusSalary": 0.0,
     "experienceYear": 2,
-    "departmentId": "2b3c4d5e-...-0004",
+    "departmentId": null,
     "overtime": [],
     "shift": "morning"
+  },
+  {
+    "type": "doctor",
+    "staffId": "4ad19c27-c481-4a12-866b-b30f1a93238a",
+    "name": "kimly",
+    "email": "kimly123@gmail.com",
+    "phoneNum": "012563377",
+    "gender": "female",
+    "role": "doctor",
+    "baseSalary": 2000.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 4,
+    "departmentId": null,
+    "overtime": [],
+    "specialization": "surgery"
+  },
+  {
+    "type": "nurse",
+    "staffId": "80988c69-bd9a-421e-970a-b4968a962ffe",
+    "name": "kimly",
+    "email": "kimly321@gmail.com",
+    "phoneNum": "0884840356",
+    "gender": "female",
+    "role": "nurse",
+    "baseSalary": 2000.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 3,
+    "departmentId": null,
+    "overtime": [],
+    "shift": "night"
   }
 ]

@@ -77,17 +77,36 @@ class Console {
   // --- helpers ---
 
   void _printMainMenu() {
-    print("================= STAFF MANAGEMENT =================");
-    print("1. Add staff");
-    print("2. Update staff (full edit)");
-    print("3. Delete staff");
-    print("4. View all staff");
-    print("5. Find staff by ID");
-    print("6. Find staff by department");
-    print("7. Find staff by role");
-    print("8. Approve overtime");
-    print("9. View departments");
-    print("0. Exit");
+    printHeader("STAFF MANAGEMENT");
+    printLine("1", "Add staff");
+    printLine("2", "Update staff (full edit)");
+    printLine("3", "Delete staff");
+    printLine("4", "View all staff");
+    printLine("5", "Find staff by ID");
+    printLine("6", "Find staff by department");
+    printLine("7", "Find staff by role");
+    printLine("8", "Approve overtime");
+    printLine("9", "View departments");
+    printLine("0", "Exit");
+  }
+
+  // Clean header style
+  void printHeader(String title) {
+    print("====================================================");
+    print("                     $title");
+    print("====================================================");
+  }
+
+  // Clean section separator
+  void printSection(String title) {
+    print("----------------------------------------------------");
+    print(" $title");
+    print("----------------------------------------------------");
+  }
+
+  // Clean line for menu or info
+  void printLine(String label, String value) {
+    print("${label.padRight(1)} . $value");
   }
 
   void _clearConsole() {

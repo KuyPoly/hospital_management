@@ -64,6 +64,11 @@ class Staff {
     _bonusSalary += amount;
   }
 
+  /// Total overtime pay (sum of each overtime.calculateOvertimePay())
+  double totalOvertimePay() {
+    return _overtimeList.fold(0.0, (sum, ot) => sum + ot.calculateOvertimePay());
+  }
+
   double calculateSalary() {
     final overtimePay =
         _overtimeList.fold(0.0, (sum, ot) => sum + ot.calculateOvertimePay());
@@ -73,7 +78,29 @@ class Staff {
 
   // Domain should not print; return info string
   String displayInfo() {
-    return "ID: $_staffId | Name: $_name | Role: ${_role.toString().split('.').last} | Salary: ${calculateSalary().toStringAsFixed(2)}";
+    final roleStr = _role.toString().split('.').last;
+    final genderStr = _gender.toString().split('.').last;
+    final deptStr = _departmentId ?? 'Unassigned';
+    final base = _baseSalary.toStringAsFixed(2);
+    final bonus = _bonusSalary.toStringAsFixed(2);
+    final otCount = _overtimeList.length;
+    final otPay = totalOvertimePay().toStringAsFixed(2);
+    final total = calculateSalary().toStringAsFixed(2);
+
+    final sb = StringBuffer();
+    sb.writeln('ID        : $_staffId');
+    sb.writeln('Name      : $_name');
+    sb.writeln('Role      : $roleStr');
+    sb.writeln('Email     : $_email');
+    sb.writeln('Phone     : $_phoneNum');
+    sb.writeln('Gender    : $genderStr');
+    sb.writeln('Department: $deptStr');
+    sb.writeln('Experience: $_experienceYear year(s)');
+    sb.writeln('Base pay  : \$$base');
+    sb.writeln('Bonus     : \$$bonus');
+    sb.writeln('Overtime  : count=$otCount  total=\$$otPay');
+    sb.writeln('Total pay : \$$total');
+    return sb.toString();
   }
 
   Map<String, dynamic> toJson() {

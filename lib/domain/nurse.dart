@@ -47,6 +47,15 @@ class Nurse extends Staff {
   Shift get shift => _shift;
 
   @override
+  String displayInfo() {
+    final base = super.displayInfo();
+    final sb = StringBuffer();
+    sb.writeln(base.trim());
+    sb.writeln('Shift     : ${_shift.displayName}');
+    return sb.toString();
+  }
+
+  @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
     json['type'] = 'nurse';

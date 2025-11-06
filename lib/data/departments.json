@@ -17,12 +17,17 @@
     "depId": "2b3c4d5e-...-0003",
     "type": "generalSurgery",
     "desc": "General surgery",
-    "staffIds": []
+    "staffIds": [
+      "93bf70a6-573c-4b98-80e1-ea47bdbbd82e"
+    ]
   },
   {
     "depId": "2b3c4d5e-...-0004",
     "type": "icu",
     "desc": "Intensive care unit",
-    "staffIds": []
+    "staffIds": [
+      "59ec9eac-9465-46a7-9513-f31c35762f69",
+      "52b726b7-ee3a-45a6-b4b6-0d552ae5edd9"
+    ]
   }
 ]

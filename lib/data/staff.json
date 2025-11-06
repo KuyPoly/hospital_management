@@ -1,24 +1,32 @@
 [
   {
     "type": "doctor",
-    "staffId": "5e0e2fbd-52eb-48fc-8049-6a486f710e31",
+    "staffId": "93bf70a6-573c-4b98-80e1-ea47bdbbd82e",
     "name": "Kuy Poly",
-    "email": "kuypoly@gmail.com",
-    "phoneNum": "0965669797",
+    "email": "ly@gmail.com",
+    "phoneNum": "0123456789",
     "gender": "male",
     "role": "doctor",
-    "baseSalary": 1000.0,
-    "bonusSalary": 30.0,
-    "experienceYear": 5,
-    "departmentId": "2b3c4d5e-...-0002",
-    "overtime": [
-      {
-        "overtimeId": "f1d0e18c-2c42-4e2a-b0af-fb425ef91cd7",
-        "date": "2025-11-06T00:00:00.000",
-        "hours": 3,
-        "rate": 100.0
-      }
-    ],
-    "specialization": "Eye"
+    "baseSalary": 1500.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 2,
+    "departmentId": "2b3c4d5e-...-0003",
+    "overtime": [],
+    "specialization": "Bone"
+  },
+  {
+    "type": "nurse",
+    "staffId": "52b726b7-ee3a-45a6-b4b6-0d552ae5edd9",
+    "name": "Ka",
+    "email": "ka@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "male",
+    "role": "nurse",
+    "baseSalary": 1500.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 2,
+    "departmentId": "2b3c4d5e-...-0004",
+    "overtime": [],
+    "shift": "morning"
   }
 ]

@@ -30,6 +30,15 @@ class Doctor extends Staff {
   String get specialization => _specialization;
 
   @override
+  String displayInfo() {
+    final base = super.displayInfo();
+    final sb = StringBuffer();
+    sb.writeln(base.trim());
+    sb.writeln('Specialty : $_specialization');
+    return sb.toString();
+  }
+
+  @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
     json['type'] = 'doctor';

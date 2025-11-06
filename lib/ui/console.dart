@@ -9,6 +9,7 @@ import '../domain/admin.dart';
 import '../domain/staff.dart';
 import '../domain/overtime.dart';
 import '../domain/department.dart';
+import '../service/staff_service.dart';
 
 class Console {
   final StaffManager staffManager;
@@ -22,7 +23,9 @@ class Console {
   Future<void> start() async {
     // load existing data
     final loaded = await _repo.loadAll();
-    for (final s in loaded) staffManager.addStaff(s);
+    for (final s in loaded){
+      staffManager.addStaff(s);
+    }
 
     // load departments (merge into manager)
     final deps = await _deptRepo.loadAll();
@@ -33,7 +36,7 @@ class Console {
     while (true) {
       _clearConsole();
       _printMainMenu();
-      final choice = _readMenuChoice(0, 10);
+      final choice = _readMenuChoice(0, 9);
       if (choice == 0) {
         print('Exiting...');
         break;
@@ -67,9 +70,6 @@ class Console {
         case 9:
           await _viewDepartments();
           break;
-        case 10:
-          await _updateDepartment();
-          break;
       }
     }
   }
@@ -87,7 +87,6 @@ class Console {
     print("7. Find staff by role");
     print("8. Approve overtime");
     print("9. View departments");
-    print("10. Update / manage departments");
     print("0. Exit");
   }
 
@@ -195,15 +194,6 @@ class Console {
     }
   }
 
-  Gender _readGender(String prompt) {
-    while (true) {
-      final v = _read(prompt).toLowerCase();
-      if (v == 'male' || v == 'm') return Gender.male;
-      if (v == 'female' || v == 'f') return Gender.female;
-      print('Enter "male" or "female".');
-    }
-  }
-
   String _readStaffType(String prompt) {
     while (true) {
       final v = _read(prompt).toLowerCase();
@@ -224,30 +214,6 @@ class Console {
     }
   }
 
-  // Shift helpers for Nurse enum
-  Shift _readShift(String prompt, {Shift? defaultShift}) {
-    final choices = {
-      '1': Shift.morning,
-      '2': Shift.afternoon,
-      '3': Shift.night,
-      'morning': Shift.morning,
-      'afternoon': Shift.afternoon,
-      'night': Shift.night,
-      'm': Shift.morning,
-      'a': Shift.afternoon,
-      'n': Shift.night,
-    };
-    final defaultPrompt = defaultShift != null ? ' [${defaultShift.displayName}]' : '';
-    while (true) {
-      final input = _read('$prompt$defaultPrompt: ', defaultValue: defaultShift?.value);
-      final key = input.toLowerCase();
-      if (choices.containsKey(key)) return choices[key]!;
-      // also accept numeric tokens like "1", "2", "3"
-      final mapped = choices[input.toLowerCase()];
-      if (mapped != null) return mapped;
-      print('Enter 1=Morning, 2=Afternoon, 3=Night (or name).');
-    }
-  }
 
   Future<void> _persist() async {
     try {
@@ -266,48 +232,44 @@ class Console {
     final name = _readNonEmpty('Name: ');
     final email = _readEmail('Email: ');
     final phone = _readPhone('Phone: ');
-    final gender = _readGender('Gender (male / female): ');
+    final gender = _read('Gender (male / female): ');
     final baseSalary = _readDouble('Base salary (>0): ', min: 0.01);
     final experienceYear = _readInt('Experience year (>=0): ', min: 0);
 
-    Staff staff;
+    // role-specific raw inputs (UI only)
+    String? specialization;
+    String? shiftStr;
+    String? positionStr;
     if (type == 'doctor') {
-      final spec = _readNonEmpty('Specialization: ');
-      staff = Doctor(
-        name: name,
-        email: email,
-        phoneNum: phone,
-        gender: gender,
-        baseSalary: baseSalary,
-        experienceYear: experienceYear,
-        specialization: spec,
-      );
+      specialization = _readNonEmpty('Specialization: ');
     } else if (type == 'nurse') {
       print('Choose shift: 1) Morning  2) Afternoon  3) Night');
-      final shift = _readShift('Shift');
-      staff = Nurse(
-        name: name,
-        email: email,
-        phoneNum: phone,
-        gender: gender,
-        baseSalary: baseSalary,
-        experienceYear: experienceYear,
-        shift: shift,
-      );
+      shiftStr = _read('Shift (1/2/3 or morning/afternoon/night): ');
     } else {
       final pos = _readPosition();
-      staff = Admin(
-        name: name,
-        email: email,
-        phoneNum: phone,
-        gender: gender,
-        baseSalary: baseSalary,
-        experienceYear: experienceYear,
-        position: pos,
-      );
+      positionStr = pos.toString().split('.').last;
     }
 
-    staffManager.addStaff(staff);
+    Staff staff;
+    try {
+      staff = StaffService.createStaff(
+        type: type,
+        name: name,
+        email: email,
+        phone: phone,
+        genderStr: gender,
+        baseSalary: baseSalary,
+        experienceYear: experienceYear,
+        specialization: specialization,
+        shiftStr: shiftStr,
+        positionStr: positionStr,
+      );
+      staffManager.addStaff(staff);
+    } catch (e) {
+      print('Failed to add staff: $e');
+      await _pauseAndClear();
+      return;
+    }
 
     // Ask to assign department (enum)
     final assign = _read('Assign department now? (y/n): ').toLowerCase();
@@ -387,42 +349,16 @@ class Console {
     final newRole = _readStaffTypeWithDefault('Role ($currentRoleStr) : ', currentRoleStr);
     final newName = _read('Name [${old.name}]: ', defaultValue: old.name);
     final newEmail = _read('Email [${old.email}]: ', defaultValue: old.email);
-    // validate email
-    final emailRe = RegExp(r'^[\w\.\-]+@[A-Za-z0-9\.\-]+\.[A-Za-z]{2,}$');
-    if (!emailRe.hasMatch(newEmail)) {
-      print('Invalid email entered. Update aborted.');
-      await _pauseAndClear();
-      return;
-    }
     final newPhone = _read('Phone [${old.phoneNum}]: ', defaultValue: old.phoneNum);
-    final phoneRe = RegExp(r'^0\d{8,9}$');
-    if (!phoneRe.hasMatch(newPhone)) {
-      print('Invalid phone. Update aborted.');
-      await _pauseAndClear();
-      return;
-    }
     final genderStr = _read('Gender (male/female) [${old.gender.toString().split('.').last}]: ',
         defaultValue: old.gender.toString().split('.').last);
-    final newGender = (genderStr.toLowerCase() == 'male') ? Gender.male : Gender.female;
     final baseSalaryStr = _read('Base salary [${old.baseSalary}]: ', defaultValue: old.baseSalary.toString());
-    final newBaseSalary = double.tryParse(baseSalaryStr);
-    if (newBaseSalary == null || newBaseSalary <= 0) {
-      print('Invalid base salary. Update aborted.');
-      await _pauseAndClear();
-      return;
-    }
     final experienceStr = _read('Experience years [${old.experienceYear}]: ', defaultValue: old.experienceYear.toString());
-    final newExperience = int.tryParse(experienceStr);
-    if (newExperience == null || newExperience < 0) {
-      print('Invalid experience year. Update aborted.');
-      await _pauseAndClear();
-      return;
-    }
 
     // role specific input
     String? newSpec;
-    Shift? newShift;
-    Position? newPos;
+    String? newShiftStr;
+    String? newPosStr;
     if (newRole == 'doctor') {
       if (old is Doctor) {
         newSpec = _read('Specialization [${old.specialization}]: ', defaultValue: old.specialization);
@@ -432,19 +368,20 @@ class Console {
     } else if (newRole == 'nurse') {
       if (old is Nurse) {
         print('Choose shift: 1) Morning 2) Afternoon 3) Night');
-        newShift = _readShift('Shift', defaultShift: old.shift);
+        newShiftStr = _read('Shift (1/2/3 or morning/afternoon/night): ', defaultValue: old.shift.value);
       } else {
         print('Choose shift: 1) Morning 2) Afternoon 3) Night');
-        newShift = _readShift('Shift');
+        newShiftStr = _read('Shift (1/2/3 or morning/afternoon/night): ');
       }
     } else {
       if (old is Admin) {
         final posStr =
             _read('Position (accountant/receptionist) [${old.position.toString().split('.').last}]: ',
                 defaultValue: old.position.toString().split('.').last);
-        newPos = posStr.toLowerCase().contains('account') ? Position.accountant : Position.receptionist;
+        newPosStr = posStr;
       } else {
-        newPos = _readPosition();
+        final pos = _readPosition();
+        newPosStr = pos.toString().split('.').last;
       }
     }
 
@@ -465,71 +402,48 @@ class Console {
       }
     }
 
-    // create new instance preserving id, overtime, bonus
-    Staff newStaff;
-    if (newRole == 'doctor') {
-      newStaff = Doctor(
-        staffId: old.staffId,
+    // delegate construction/validation to service
+    final parsedBase = double.tryParse(baseSalaryStr) ?? -1.0;
+    final parsedExp = int.tryParse(experienceStr) ?? -1;
+    Staff updated;
+    try {
+      updated = StaffService.updateStaff(
+        old,
+        newRole: newRole,
         name: newName,
         email: newEmail,
-        phoneNum: newPhone,
-        gender: newGender,
-        baseSalary: newBaseSalary,
-        experienceYear: newExperience,
-        departmentId: chosenDept?.depId,
-        specialization: newSpec ?? '',
+        phone: newPhone,
+        genderStr: genderStr,
+        baseSalary: parsedBase,
+        experienceYear: parsedExp,
+        specialization: newSpec,
+        shiftStr: newShiftStr,
+        positionStr: newPosStr,
+        departmentId: chosenDept?.depId ?? old.departmentId,
       );
-    } else if (newRole == 'nurse') {
-      newStaff = Nurse(
-        staffId: old.staffId,
-        name: newName,
-        email: newEmail,
-        phoneNum: newPhone,
-        gender: newGender,
-        baseSalary: newBaseSalary,
-        experienceYear: newExperience,
-        departmentId: chosenDept?.depId,
-        shift: newShift ?? (old is Nurse ? old.shift : Shift.morning),
-      );
-    } else {
-      newStaff = Admin(
-        staffId: old.staffId,
-        name: newName,
-        email: newEmail,
-        phoneNum: newPhone,
-        gender: newGender,
-        baseSalary: newBaseSalary,
-        experienceYear: newExperience,
-        departmentId: chosenDept?.depId,
-        position: newPos ?? Position.receptionist,
-      );
+    } catch (e) {
+      print('Failed to update staff: $e');
+      await _pauseAndClear();
+      return;
     }
 
-    // copy overtime and bonus
-    for (final ot in old.overtimeList) {
-      newStaff.addOvertime(ot);
-    }
-    if (old.bonusSalary > 0) {
-      newStaff.addBonus(old.bonusSalary);
-    }
-
-    // replace in manager
+    // copy done in service; replace in manager
     staffManager.removeStaff(old);
-    staffManager.addStaff(newStaff);
+    staffManager.addStaff(updated);
 
     // ensure department mapping
     if (chosenDept != null) {
       // remove old mapping from other departments if any
       for (final d in staffManager.departmentList) {
-        if (d.staffIds.contains(newStaff.staffId) && d.depId != chosenDept.depId) {
-          d.removeStaff(newStaff);
+        if (d.staffIds.contains(updated.staffId) && d.depId != chosenDept.depId) {
+          d.removeStaff(updated);
         }
       }
-      chosenDept.addStaff(newStaff);
+      chosenDept.addStaff(updated);
     }
 
     await _persist();
-    print('Staff updated: ${newStaff.displayInfo()}');
+    print('Staff updated: ${updated.displayInfo()}');
     await _pauseAndClear();
   }
 
@@ -663,71 +577,15 @@ class Console {
       return;
     }
 
-    // Date input and immediate validation (not future, <=30 days)
-    DateTime otDay;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    while (true) {
-      final dateStr = _read('Date (YYYY-MM-DD) (or "x" to cancel): ');
-      if (dateStr.toLowerCase() == 'x') {
-        await _pauseAndClear();
-        return;
-      }
-      try {
-        final parsed = DateTime.parse(dateStr);
-        otDay = DateTime(parsed.year, parsed.month, parsed.day); // normalize
-      } catch (_) {
-        print('Invalid date format. Use YYYY-MM-DD.');
-        continue;
-      }
-      if (otDay.isAfter(today)) {
-        print('Overtime date cannot be in the future.');
-        continue;
-      }
-      final daysDifference = today.difference(otDay).inDays;
-      if (daysDifference > 30) {
-        print('Overtime date is older than 30 days.');
-        continue;
-      }
-      break;
-    }
-
-    // Hours
+    // Delegate parsing/validation to service + manager
+    final dateStr = _read('Date (YYYY-MM-DD) (or "x" to cancel): ');
+    if (dateStr.toLowerCase() == 'x') { await _pauseAndClear(); return; }
     final hours = _readInt('Hours (1-16): ', min: 1, max: 16);
-
-    // Compute default rate (same logic as domain percentages) and show to user
-    final defaultPct = staff.role == Role.doctor
-        ? 0.10
-        : staff.role == Role.nurse
-            ? 0.08
-            : 0.08;
-    double defaultRate = staff.baseSalary * defaultPct;
-    final isWeekend = otDay.weekday == DateTime.saturday || otDay.weekday == DateTime.sunday;
-    if (isWeekend) defaultRate *= 1.25;
-
-    // Ask user to accept default or provide custom rate
-    double? rate;
-    while (true) {
-      final input = _read('Default rate for this staff is ${defaultRate.toStringAsFixed(2)}. Enter custom rate or press Enter to use default (or "x" to cancel): ');
-      if (input.toLowerCase() == 'x') {
-        await _pauseAndClear();
-        return;
-      }
-      if (input.trim().isEmpty) {
-        rate = defaultRate;
-        break;
-      }
-      final parsed = double.tryParse(input);
-      if (parsed == null || parsed <= 0) {
-        print('Invalid rate. Must be a positive number.');
-        continue;
-      }
-      rate = parsed;
-      break;
-    }
+    final rateInput = _read('Rate (leave empty to use default) (or "x" to cancel): ');
+    if (rateInput.toLowerCase() == 'x') { await _pauseAndClear(); return; }
 
     try {
-      staffManager.approveOvertime(staff, date: otDay, hours: hours, rate: rate);
+      StaffService.approveOvertimeFromInput(staffManager, staff, dateStr: dateStr, hours: hours, rateStr: rateInput.trim().isEmpty ? null : rateInput);
       // add bonus when overtime approved (10% of overtime pay)
       final lastOt = staff.overtimeList.isNotEmpty ? staff.overtimeList.last : null;
       if (lastOt != null) {
@@ -735,7 +593,7 @@ class Console {
         staff.addBonus(bonus);
       }
       await _persist();
-      print('Overtime approved for ${staff.name} on ${otDay.toIso8601String()} (hours: $hours, rate: ${rate.toStringAsFixed(2)})');
+      print('Overtime approved for ${staff.name}');
     } catch (e) {
       print('Failed to approve overtime: $e');
     }
@@ -755,71 +613,4 @@ class Console {
     await _pauseAndClear();
   }
 
-  Future<void> _updateDepartment() async {
-    print('Departments:');
-    for (var i = 0; i < staffManager.departmentList.length; i++) {
-      final d = staffManager.departmentList[i];
-      print('[$i] ${d.name} (${d.depId}) - ${d.desc}');
-    }
-    print('c) Create new department');
-    print('x) Cancel');
-    while (true) {
-      final sel = _read('Choose index, "c" or "x": ').toLowerCase();
-      if (sel == 'x') {
-        await _pauseAndClear();
-        return;
-      }
-      if (sel == 'c') {
-        final typeIndex = _readInt('Department type index: ', min: 0, max: DepartmentType.values.length - 1);
-        final desc = _read('Description (optional): ');
-        final dept = staffManager.createDepartmentIfMissing(DepartmentType.values[typeIndex], desc: desc);
-        print('Created/ensured department ${dept.name} (${dept.depId})');
-        await _persist();
-        await _pauseAndClear();
-        return;
-      }
-      final idx = int.tryParse(sel);
-      if (idx == null || idx < 0 || idx >= staffManager.departmentList.length) {
-        print('Invalid selection.');
-        continue;
-      }
-      final dept = staffManager.departmentList[idx];
-      print('Selected ${dept.name} (${dept.depId})');
-      print('1) Update description');
-      print('2) Remove department (will clear departmentId from staff)');
-      print('x) Cancel');
-      final action = _read('Choose action: ').toLowerCase();
-      if (action == '1') {
-        final newDesc = _read('New description: ');
-        try {
-          staffManager.updateDepartmentDescription(dept.depId, newDesc);
-          print('Description updated.');
-          await _persist();
-        } catch (e) {
-          print('Failed to update department: $e');
-        }
-        await _pauseAndClear();
-        return;
-      } else if (action == '2') {
-        final confirm = _read('Type "yes" to confirm removal: ').toLowerCase();
-        if (confirm != 'yes') {
-          print('Removal cancelled.');
-          await _pauseAndClear();
-          return;
-        }
-        final removed = staffManager.removeDepartment(dept.depId);
-        if (removed) {
-          await _persist();
-          print('Department removed and assignments cleared.');
-        } else {
-          print('Department not found / already removed.');
-        }
-        await _pauseAndClear();
-        return;
-      } else {
-        await _pauseAndClear();
-        return;
-      }
-    }
-  }
 }

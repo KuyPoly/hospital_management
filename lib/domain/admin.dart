@@ -32,6 +32,15 @@ class Admin extends Staff {
   Position get position => _position;
 
   @override
+  String displayInfo() {
+    final base = super.displayInfo();
+    final sb = StringBuffer();
+    sb.writeln(base.trim());
+    sb.writeln('Position  : ${_position.toString().split(".").last}');
+    return sb.toString();
+  }
+
+  @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
     json['type'] = 'admin';

@@ -1,43 +1,73 @@
 import 'staff.dart';
 import 'overtime.dart';
 
+enum Shift { morning, afternoon, night }
+
+extension ShiftX on Shift {
+  String get displayName {
+    switch (this) {
+      case Shift.morning:
+        return 'Morning';
+      case Shift.afternoon:
+        return 'Afternoon';
+      case Shift.night:
+        return 'Night';
+    }
+  }
+
+  String get value => toString().split('.').last;
+}
+
 class Nurse extends Staff {
-  final String _shift;
+  final Shift _shift;
 
   Nurse({
-    super.staffId,
-    required super.displayId,
-    required super.name,
-    required super.email,
-    required super.phoneNum,
-    required super.gender,
-    required super.baseSalary,
-    required super.bonusSalary,
-    required super.experienceYear,
-    required String shift,
-  }) : _shift = shift;
+    String? staffId,
+    required String name,
+    required String email,
+    required String phoneNum,
+    required Gender gender,
+    required double baseSalary,
+    required int experienceYear,
+    String? departmentId,
+    required Shift shift,
+  })  : _shift = shift,
+        super(
+          staffId: staffId,
+          name: name,
+          email: email,
+          phoneNum: phoneNum,
+          gender: gender,
+          role: Role.nurse,
+          baseSalary: baseSalary,
+          experienceYear: experienceYear,
+          departmentId: departmentId,
+        );
 
-  String get shift => _shift;
+  Shift get shift => _shift;
 
   @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
-    json['shift'] = _shift;
+    json['type'] = 'nurse';
+    json['shift'] = _shift.value;
     return json;
   }
 
   factory Nurse.fromJson(Map<String, dynamic> json) {
+    final shiftStr = (json['shift'] as String?) ?? Shift.morning.value;
+    final shift = Shift.values.firstWhere((s) => s.value == shiftStr, orElse: () => Shift.morning);
     final nurse = Nurse(
       staffId: json['staffId'] as String?,
-      displayId: json['displayId'] as int,
       name: json['name'] as String,
       email: json['email'] as String,
       phoneNum: json['phoneNum'] as String,
-      gender: (json['gender'] as String).toLowerCase() == 'male' ? Gender.male : Gender.female,
+      gender:
+          (json['gender'] as String).toLowerCase() == 'male' ? Gender.male : Gender.female,
       baseSalary: (json['baseSalary'] as num).toDouble(),
-      bonusSalary: (json['bonusSalary'] as num).toDouble(),
-      experienceYear: json['experienceYear'] as int,
-      shift: json['shift'] as String,
+      experienceYear: (json['experienceYear'] as num?)?.toInt() ?? 0,
+      departmentId: json['departmentId'] as String?,
+      shift: shift,
     );
     final otList = (json['overtime'] as List<dynamic>? ?? [])
         .map((e) => Overtime.fromJson(e as Map<String, dynamic>))
@@ -45,6 +75,8 @@ class Nurse extends Staff {
     for (final ot in otList) {
       nurse.addOvertime(ot);
     }
+    final bonus = (json['bonusSalary'] as num?)?.toDouble();
+    if (bonus != null && bonus > 0) nurse.addBonus(bonus);
     return nurse;
   }
 }

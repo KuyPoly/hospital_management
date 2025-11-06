@@ -7,43 +7,54 @@ class Admin extends Staff {
   final Position _position;
 
   Admin({
-    super.staffId,
-    required super.displayId,
-    required super.name,
-    required super.email,
-    required super.phoneNum,
-    required super.gender,
-    required super.baseSalary,
-    required super.bonusSalary,
-    required super.experienceYear,
+    String? staffId,
+    required String name,
+    required String email,
+    required String phoneNum,
+    required Gender gender,
+    required double baseSalary,
+    required int experienceYear,
+    String? departmentId,
     required Position position,
-  }) : _position = position;
+  })  : _position = position,
+        super(
+          staffId: staffId,
+          name: name,
+          email: email,
+          phoneNum: phoneNum,
+          gender: gender,
+          role: Role.administrationStaff,
+          baseSalary: baseSalary,
+          experienceYear: experienceYear,
+          departmentId: departmentId,
+        );
 
   Position get position => _position;
 
   @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
+    json['type'] = 'admin';
     json['position'] = _position.toString().split('.').last;
     return json;
   }
 
   factory Admin.fromJson(Map<String, dynamic> json) {
-    final positionStr = json['position'] as String;
-    final position = positionStr.toLowerCase() == 'accountant' 
-        ? Position.accountant 
+    final positionStr = json['position'] as String? ?? 'receptionist';
+    final position = positionStr.toLowerCase() == 'accountant'
+        ? Position.accountant
         : Position.receptionist;
-    
+
     final admin = Admin(
       staffId: json['staffId'] as String?,
-      displayId: json['displayId'] as int,
       name: json['name'] as String,
       email: json['email'] as String,
       phoneNum: json['phoneNum'] as String,
-      gender: (json['gender'] as String).toLowerCase() == 'male' ? Gender.male : Gender.female,
+      gender:
+          (json['gender'] as String).toLowerCase() == 'male' ? Gender.male : Gender.female,
       baseSalary: (json['baseSalary'] as num).toDouble(),
-      bonusSalary: (json['bonusSalary'] as num).toDouble(),
-      experienceYear: json['experienceYear'] as int,
+      experienceYear: (json['experienceYear'] as num?)?.toInt() ?? 0,
+      departmentId: json['departmentId'] as String?,
       position: position,
     );
     final otList = (json['overtime'] as List<dynamic>? ?? [])
@@ -52,6 +63,8 @@ class Admin extends Staff {
     for (final ot in otList) {
       admin.addOvertime(ot);
     }
+    final bonus = (json['bonusSalary'] as num?)?.toDouble();
+    if (bonus != null && bonus > 0) admin.addBonus(bonus);
     return admin;
   }
 }

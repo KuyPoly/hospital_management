@@ -1,0 +1,28 @@
+[
+  {
+    "depId": "fa80a709-4d21-4033-a89f-614cb29f3eb1",
+    "type": "emergencyCare",
+    "desc": "24/7 Emergency",
+    "staffIds": []
+  },
+  {
+    "depId": "2b3c4d5e-...-0002",
+    "type": "cardiology",
+    "desc": "Heart care",
+    "staffIds": [
+      "5e0e2fbd-52eb-48fc-8049-6a486f710e31"
+    ]
+  },
+  {
+    "depId": "2b3c4d5e-...-0003",
+    "type": "generalSurgery",
+    "desc": "General surgery",
+    "staffIds": []
+  },
+  {
+    "depId": "2b3c4d5e-...-0004",
+    "type": "icu",
+    "desc": "Intensive care unit",
+    "staffIds": []
+  }
+]

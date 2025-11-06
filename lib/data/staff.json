@@ -1,0 +1,24 @@
+[
+  {
+    "type": "doctor",
+    "staffId": "5e0e2fbd-52eb-48fc-8049-6a486f710e31",
+    "name": "Kuy Poly",
+    "email": "kuypoly@gmail.com",
+    "phoneNum": "0965669797",
+    "gender": "male",
+    "role": "doctor",
+    "baseSalary": 1000.0,
+    "bonusSalary": 30.0,
+    "experienceYear": 5,
+    "departmentId": "2b3c4d5e-...-0002",
+    "overtime": [
+      {
+        "overtimeId": "f1d0e18c-2c42-4e2a-b0af-fb425ef91cd7",
+        "date": "2025-11-06T00:00:00.000",
+        "hours": 3,
+        "rate": 100.0
+      }
+    ],
+    "specialization": "Eye"
+  }
+]

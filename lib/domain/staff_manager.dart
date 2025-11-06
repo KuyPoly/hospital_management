@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
 import 'staff.dart';
 import 'department.dart';
 import 'overtime.dart';
@@ -11,103 +9,126 @@ class StaffManager {
   final List<Staff> _staffList = [];
   final List<Department> _departmentList = [];
 
-  // Public read-only view of staff list
+  // read-only views
   List<Staff> get staffList => List.unmodifiable(_staffList);
-  
-  // Public read-only view of department list
   List<Department> get departmentList => List.unmodifiable(_departmentList);
 
-  // Return staff list for UI to use
-  List<Staff> viewStaffInfo() {
-    return List.unmodifiable(_staffList);
-  }
-
-  void addStaff(Staff staff) {
-    _staffList.add(staff);
-  }
-
-  void removeStaff(Staff staff) {
-    _staffList.remove(staff);
-  }
-
+  void addStaff(Staff staff) => _staffList.add(staff);
+  void removeStaff(Staff staff) => _staffList.remove(staff);
   int getStaffCount() => _staffList.length;
 
   Staff? findStaffById(String id) {
-    for (var s in _staffList) {
+    for (final s in _staffList) {
       if (s.staffId == id) return s;
     }
     return null;
   }
 
-  // Improved department filter: attempts common field names then fallback to name matching
-  List<Staff> filterStaffByDepartment(String deptName) {
-    final q = deptName.toLowerCase();
-    return _staffList.where((s) {
-      try {
-        final dep = (s as dynamic).department;
-        if (dep != null) {
-          final depName = (dep.name ?? dep.toString()).toString().toLowerCase();
-          if (depName.contains(q)) return true;
-        }
-      } catch (_) {}
-      try {
-        final depNameField = (s as dynamic).departmentName;
-        if (depNameField != null && depNameField.toString().toLowerCase().contains(q)) return true;
-      } catch (_) {}
-      return s.name.toLowerCase().contains(q);
-    }).toList();
-  }
-
-  // Role-based lookup using Role enum; flexible checks for position/role fields or runtimeType
-  List<Staff> findStaffByRole(Role role) {
-    final q = role.toString().split('.').last.toLowerCase();
-    return _staffList.where((s) {
-      try {
-        final p = (s as dynamic).position;
-        if (p == role) return true;
-        if (p != null && p.toString().toLowerCase().contains(q)) return true;
-      } catch (_) {}
-      try {
-        final r = (s as dynamic).role;
-        if (r != null && r.toString().toLowerCase().contains(q)) return true;
-      } catch (_) {}
-      final typeName = s.runtimeType.toString().toLowerCase();
-      return typeName.contains(q);
-    }).toList();
-  }
-
-  // Approve overtime with validation on date and hours, and sensible rate defaults
-  void approveOvertime(
-    Staff staff,
-    {
-      required DateTime date,
-      required int hours,
-      double? rate,
+  // department helpers
+  void addDepartment(Department dept) {
+    if (!_departmentList.any((d) => d.depId == dept.depId)) {
+      _departmentList.add(dept);
     }
-  ) {
-    // Basic hours validation
+  }
+
+  Department? findDepartmentByType(DepartmentType type) {
+    for (final d in _departmentList) {
+      if (d.type == type) return d;
+    }
+    return null;
+  }
+
+  Department createDepartmentIfMissing(DepartmentType type, {String desc = ''}) {
+    final existing = findDepartmentByType(type);
+    if (existing != null) return existing;
+    final d = Department(type: type, desc: desc);
+    addDepartment(d);
+    return d;
+  }
+
+  /// Replace the department's description (preserves staff assignments).
+  /// Throws ArgumentError if department not found.
+  void updateDepartmentDescription(String depId, String newDesc) {
+    final idx = _departmentList.indexWhere((d) => d.depId == depId);
+    if (idx == -1) {
+      throw ArgumentError('Department not found: $depId');
+    }
+    final old = _departmentList[idx];
+    final replaced = Department(depId: old.depId, type: old.type, desc: newDesc);
+    // preserve staff assignment using public API
+    for (final sid in old.staffIds) {
+      final s = findStaffById(sid);
+      if (s != null) {
+        replaced.addStaff(s);
+      }
+    }
+    _departmentList[idx] = replaced;
+  }
+
+  /// Remove a department entry and clear departmentId from all associated staff.
+  /// Returns true if removed, false if not found.
+  bool removeDepartment(String depId) {
+    final idx = _departmentList.indexWhere((d) => d.depId == depId);
+    if (idx == -1) return false;
+    final dept = _departmentList.removeAt(idx);
+    for (final sid in dept.staffIds) {
+      final s = findStaffById(sid);
+      if (s != null && s.departmentId == depId) {
+        s.departmentId = null;
+      }
+    }
+    return true;
+  }
+
+  // department filters using departmentId and departmentList (no dynamic)
+  List<Staff> filterStaffByDepartmentId(String depId) {
+    return _staffList.where((s) => s.departmentId == depId).toList();
+  }
+
+  List<Staff> filterStaffByDepartmentName(String name) {
+    final q = name.toLowerCase();
+    final matches = _departmentList.where((d) => d.name.toLowerCase().contains(q));
+    if (matches.isEmpty) {
+      return [];
+    }
+    final dept = matches.first;
+    return filterStaffByDepartmentId(dept.depId);
+  }
+
+  // role-based lookup using Role enum (no dynamic)
+  List<Staff> findStaffByRole(Role role) {
+    return _staffList.where((s) => s.role == role).toList();
+  }
+
+  // Approve overtime same as before but using domain only
+  // Default overtime rate now computed as percentage of baseSalary:
+  // doctor -> 10%  nurse -> 8%  administrationStaff -> 8%
+  void approveOvertime(
+    Staff staff, {
+    required DateTime date,
+    required int hours,
+    double? rate,
+  }) {
     if (hours <= 0) {
-      throw ArgumentError('Overtime hours must be greater than 0');
+      throw ArgumentError('Overtime hours must be > 0');
     }
     if (hours > 16) {
-      throw ArgumentError('Overtime hours cannot exceed 16 hours per day');
+      throw ArgumentError('Overtime hours cannot exceed 16');
     }
 
-    // Date validations: not in future, not older than 30 days
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final otDay = DateTime(date.year, date.month, date.day);
 
     if (otDay.isAfter(today)) {
-      throw ArgumentError('Overtime date cannot be in the future');
+      throw ArgumentError('Overtime date cannot be in future');
     }
 
     final daysDifference = today.difference(otDay).inDays;
     if (daysDifference > 30) {
-      throw ArgumentError('Overtime date is older than 30 days');
+      throw ArgumentError('Overtime date older than 30 days');
     }
 
-    // Prevent duplicate overtime entries for the same staff on the same date
     final hasSameDay = staff.overtimeList.any((ot) {
       final d = ot.date;
       return d.year == otDay.year && d.month == otDay.month && d.day == otDay.day;
@@ -116,97 +137,25 @@ class StaffManager {
       throw StateError('Overtime already approved for this date');
     }
 
-    // Determine rate: allow override via parameter; otherwise choose a sensible default
     double resolvedRate;
     if (rate != null && rate > 0) {
       resolvedRate = rate;
     } else {
-      // Simple role-based defaults via runtimeType
-      final typeName = staff.runtimeType.toString().toLowerCase();
-      if (typeName.contains('doctor')) {
-        resolvedRate = 15.0;
-      } else if (typeName.contains('nurse')) {
-        resolvedRate = 10.0;
-      } else {
-        // admin or others
-        resolvedRate = 8.0;
-      }
-      // Weekend premium +25%
-      final isWeekend = otDay.weekday == DateTime.saturday || otDay.weekday == DateTime.sunday;
+      // compute default as percentage of baseSalary
+      final pct = staff.role == Role.doctor
+          ? 0.10
+          : staff.role == Role.nurse
+              ? 0.08
+              : 0.08;
+      resolvedRate = staff.baseSalary * pct;
+      final isWeekend =
+          otDay.weekday == DateTime.saturday || otDay.weekday == DateTime.sunday;
       if (isWeekend) {
-        resolvedRate = resolvedRate * 1.25;
+        resolvedRate *= 1.25;
       }
     }
 
-    final overtime = Overtime(
-      date: otDay,
-      hours: hours,
-      rate: resolvedRate,
-    );
+    final overtime = Overtime(date: otDay, hours: hours, rate: resolvedRate);
     staff.addOvertime(overtime);
-  }
-
-  // -------------------------------
-  // Persistence (JSON file IO)
-  // -------------------------------
-
-  // Load staff list from a JSON file at filePath.
-  // Expected format: { "staff": [ { ... staff json ... }, ... ] }
-  void loadFromJsonFile(String filePath) {
-    final file = File(filePath);
-    if (!file.existsSync()) {
-      _staffList.clear();
-      return;
-    }
-
-    final content = file.readAsStringSync();
-    if (content.trim().isEmpty) {
-      _staffList.clear();
-      return;
-    }
-
-    final decoded = jsonDecode(content);
-    if (decoded is! Map<String, dynamic>) {
-      throw const FormatException('Root JSON must be an object');
-    }
-
-    final rawList = decoded['staff'];
-    if (rawList is! List) {
-      _staffList.clear();
-      return;
-    }
-
-    _staffList
-      ..clear()
-      ..addAll(rawList
-          .whereType<Map<String, dynamic>>()
-          .map(_staffFromJson));
-  }
-
-  // Save current staff list to a JSON file at filePath.
-  // Format: { "staff": [ ... ] }
-  void saveToJsonFile(String filePath) {
-    final file = File(filePath);
-    final data = <String, dynamic>{
-      'staff': _staffList.map((s) => s.toJson()).toList(),
-    };
-    file.createSync(recursive: true);
-    final encoder = const JsonEncoder.withIndent('  ');
-    file.writeAsStringSync(encoder.convert(data));
-  }
-
-  // Internal helper: build the correct Staff subtype from JSON using the 'type' field
-  Staff _staffFromJson(Map<String, dynamic> json) {
-    final type = (json['type'] as String?)?.toLowerCase();
-    switch (type) {
-      case 'doctor':
-        return Doctor.fromJson(json);
-      case 'nurse':
-        return Nurse.fromJson(json);
-      case 'admin':
-        return Admin.fromJson(json);
-      default:
-        return Staff.fromJson(json);
-    }
   }
 }

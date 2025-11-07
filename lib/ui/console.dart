@@ -441,11 +441,9 @@ class Console {
       return;
     }
 
-    // copy done in service; replace in manager
     staffManager.removeStaff(old);
     staffManager.addStaff(updated);
 
-    // ensure department mapping
     if (chosenDept != null) {
       // remove old mapping from other departments if any
       for (final d in staffManager.departmentList) {
@@ -460,7 +458,7 @@ class Console {
       updated.departmentId = chosenDept.depId;
     } else if (updated.departmentId != null) {
       // If user did not change department, re-attach the updated staff to the existing dept
-      // (removeStaff(old) may have removed the id from the department list)
+      // remove old Staff may have removed the id from the department list
       final idx = staffManager.departmentList.indexWhere((d) => d.depId == updated.departmentId);
       if (idx != -1) {
         final existingDept = staffManager.departmentList[idx];
@@ -507,7 +505,6 @@ class Console {
       for (final s in list) {
         // show full staff info
         print(s.displayInfo());
-        // lookup and show department details if present
         if (s.departmentId != null) {
           final idx = staffManager.departmentList.indexWhere((d) => d.depId == s.departmentId);
           if (idx != -1) {
@@ -621,8 +618,7 @@ class Console {
         rateStr: rateInput.trim().isEmpty ? null : rateInput,
       );
 
-      // Bonus is handled by StaffManager.approveOvertime (domain). Do not add here.
-
+      // Bonus is handled by StaffManager.approveOvertime 
       await _persist();
       print('Overtime approved for ${staff.name}');
     } catch (e) {

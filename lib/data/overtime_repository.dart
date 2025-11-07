@@ -9,7 +9,7 @@ class OvertimeRepository {
   OvertimeRepository({String? path})
       : filePath = path ?? p.join('lib', 'data', 'overtime.json');
 
-  /// Load raw overtime entries. Each entry should include 'staffId' along with overtime fields.
+  //Load raw overtime entries 
   Future<List<Map<String, dynamic>>> loadAllRaw() async {
     final file = File(filePath);
     if (!await file.exists()) return <Map<String, dynamic>>[];
@@ -19,14 +19,14 @@ class OvertimeRepository {
     return data.cast<Map<String, dynamic>>();
   }
 
-  /// Save a list of raw overtime maps. A typical map: { "staffId": "...", "date": "...", "hours": 2, "rate": 12.5 }
+  //Save a list of raw overtime maps
   Future<void> saveAllRaw(List<Map<String, dynamic>> raw) async {
     final file = File(filePath);
     await file.create(recursive: true);
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(raw));
   }
 
-  /// Helper: convert domain Overtime + staffId into raw map
+  //convert domain Overtime + staffId into raw map
   static Map<String, dynamic> makeEntry(String staffId, Overtime ot) {
     return {
       'staffId': staffId,
@@ -36,7 +36,7 @@ class OvertimeRepository {
     };
   }
 
-  /// Helper: build an Overtime from raw map (does not attach to staff)
+  //build an Overtime from raw map (does not attach to staff)
   static Overtime overtimeFromRaw(Map<String, dynamic> raw) {
     return Overtime(
       date: DateTime.parse(raw['date'] as String),

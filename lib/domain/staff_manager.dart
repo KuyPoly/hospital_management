@@ -46,8 +46,7 @@ class StaffManager {
     return d;
   }
 
-  /// Replace the department's description (preserves staff assignments).
-  /// Throws ArgumentError if department not found.
+  //Replace the department's description.
   void updateDepartmentDescription(String depId, String newDesc) {
     final idx = _departmentList.indexWhere((d) => d.depId == depId);
     if (idx == -1) {
@@ -65,8 +64,7 @@ class StaffManager {
     _departmentList[idx] = replaced;
   }
 
-  /// Remove a department entry and clear departmentId from all associated staff.
-  /// Returns true if removed, false if not found.
+  //Remove a department entry and clear departmentId from all associated staff.
   bool removeDepartment(String depId) {
     final idx = _departmentList.indexWhere((d) => d.depId == depId);
     if (idx == -1) return false;
@@ -80,7 +78,7 @@ class StaffManager {
     return true;
   }
 
-  // department filters using departmentId and departmentList (no dynamic)
+  // department filters using departmentId and departmentList
   List<Staff> filterStaffByDepartmentId(String depId) {
     return _staffList.where((s) => s.departmentId == depId).toList();
   }
@@ -95,12 +93,12 @@ class StaffManager {
     return filterStaffByDepartmentId(dept.depId);
   }
 
-  // role-based lookup using Role enum (no dynamic)
+  // role-based lookup using Role enum
   List<Staff> findStaffByRole(Role role) {
     return _staffList.where((s) => s.role == role).toList();
   }
-
-  // doctor -> 8%  nurse -> 5%  administrationStaff -> 5%
+  //using AI for this
+  // doctor -> 8%  nurse -> 5%  administrationStaff -> 5% 
   void approveOvertime(Staff staff, {required DateTime date, required int hours, double? rate}) {
     if (hours <= 0) {
       throw ArgumentError('Overtime hours must be > 0');
@@ -146,7 +144,6 @@ class StaffManager {
     final overtime = Overtime(date: otDay, hours: hours, rate: resolvedRate);
     staff.addOvertime(overtime);
 
-    // Domain policy (Option B): treat the approved overtime as a bonus equal to
     // the overtime pay so total salary includes the overtime amount exactly once.
     final overtimePay = overtime.calculateOvertimePay();
     staff.addBonus(overtimePay);

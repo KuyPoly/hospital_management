@@ -47,7 +47,7 @@ class Department {
   String get desc => _desc;
   List<String> get staffIds => List.unmodifiable(_staffIds);
 
-  // Add a staff to this department and set staff.departmentId
+  //Add a staff to this department and set staff.departmentId
   void addStaff(Staff staff) {
     if (!_staffIds.contains(staff.staffId)) {
       _staffIds.add(staff.staffId);
@@ -55,7 +55,7 @@ class Department {
     }
   }
 
-  // Optionally remove staff
+  //Optionally remove staff
   void removeStaff(Staff staff) {
     if (_staffIds.remove(staff.staffId) && staff.departmentId == _depId) {
       staff.departmentId = null;
@@ -91,7 +91,6 @@ class Department {
     return dep;
   }
 
-  /// Helper: return one department per DepartmentType (useful to seed UI)
   static List<Department> defaultDepartments([String desc = '']) {
     return DepartmentType.values
         .map((t) => Department(type: t, desc: desc))

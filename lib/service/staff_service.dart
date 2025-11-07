@@ -11,7 +11,6 @@ class StaffService {
   static final RegExp _emailRe = RegExp(r'^[\w\.\-]+@[A-Za-z0-9\.\-]+\.[A-Za-z]{2,}$');
   static final RegExp _phoneRe = RegExp(r'^0\d{8,9}$');
 
-  // Validate basic fields and build a Staff instance
   static Staff createStaff({
     required String type, // 'doctor' | 'nurse' | 'admin'
     required String name,
@@ -74,7 +73,7 @@ class StaffService {
     }
   }
 
-  // Update existing staff (returns new instance) - keeps id, overtime, bonus
+  // Update existing staff keeps id, overtime, bonus
   static Staff updateStaff(
     Staff old, {
     required String newRole, // 'doctor'|'nurse'|'admin'
@@ -89,7 +88,7 @@ class StaffService {
     String? positionStr,
     String? departmentId,
   }) {
-    // validate basic same as create
+    
     if (name.trim().isEmpty) throw ArgumentError('Name cannot be empty');
     if (!_emailRe.hasMatch(email)) throw ArgumentError('Invalid email');
     if (!_phoneRe.hasMatch(phone)) throw ArgumentError('Invalid phone');

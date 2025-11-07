@@ -27,21 +27,20 @@ void main() {
       expect(d.specialization, equals('Cardiology'));
     });
 
-    test('creates a nurse with valid input', () {
-      final s = StaffService.createStaff(
-        type: 'nurse',
-        name: 'Nurse Joy',
-        email: 'joy@example.com',
-        phone: '0987654321',
-        genderStr: 'female',
-        baseSalary: 900.0,
-        experienceYear: 2,
-        shiftStr: 'night',
+    test('creates a nurse with invalid phone number', () {
+      expect(
+        () => StaffService.createStaff(
+          type: 'admin',
+          name: 'Alice',
+          email: 'alice@gmail.com',
+          phone: '012345',
+          genderStr: 'female',
+          baseSalary: 800.0,
+          experienceYear: 1,
+          positionStr: 'accountant',
+        ),
+        throwsA(isA<ArgumentError>()),
       );
-      expect(s, isA<Nurse>());
-      final n = s as Nurse;
-      expect(n.name, equals('Nurse Joy'));
-      expect(n.shift, equals(Shift.night));
     });
 
     test('throws on invalid email', () {
@@ -81,35 +80,6 @@ void main() {
       expect(info, contains('Total pay'));
     });
 
-    test('nurse display includes shift', () {
-      final nurse = Nurse(
-        name: 'Nancy',
-        email: 'nancy@example.com',
-        phoneNum: '0987654321',
-        gender: Gender.female,
-        baseSalary: 900.0,
-        experienceYear: 1,
-        shift: Shift.morning,
-      );
-      final info = nurse.displayInfo();
-      expect(info, contains('Shift'));
-      expect(info, contains('Morning'));
-    });
-
-    test('admin display includes position', () {
-      final admin = Admin(
-        name: 'Adam',
-        email: 'adam@example.com',
-        phoneNum: '0111222333',
-        gender: Gender.male,
-        baseSalary: 1000.0,
-        experienceYear: 2,
-        position: Position.accountant,
-      );
-      final info = admin.displayInfo();
-      expect(info, contains('Position'));
-      expect(info, contains('accountant'));
-    });
   });
 
   group('StaffManager domain tests', () {

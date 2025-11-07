@@ -53,10 +53,17 @@
     "gender": "female",
     "role": "nurse",
     "baseSalary": 2000.0,
-    "bonusSalary": 0.0,
+    "bonusSalary": 20.0,
     "experienceYear": 3,
     "departmentId": null,
-    "overtime": [],
+    "overtime": [
+      {
+        "overtimeId": "620c54c9-3844-49c9-be87-e9838850ebd6",
+        "date": "2025-11-07T00:00:00.000",
+        "hours": 2,
+        "rate": 10.0
+      }
+    ],
     "shift": "night"
   },
   {
@@ -161,5 +168,35 @@
       }
     ],
     "specialization": "eye"
+  },
+  {
+    "type": "doctor",
+    "staffId": "100bdb45-617b-4fbb-8b41-742da708e677",
+    "name": "Poly",
+    "email": "ly@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "female",
+    "role": "doctor",
+    "baseSalary": 1200.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 2,
+    "departmentId": null,
+    "overtime": [],
+    "specialization": "Eye"
+  },
+  {
+    "type": "doctor",
+    "staffId": "bf646fe7-699a-4432-aad5-f95bc2a89174",
+    "name": "lyya",
+    "email": "ly@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "male",
+    "role": "doctor",
+    "baseSalary": 1200.0,
+    "bonusSalary": 0.0,
+    "experienceYear": 4,
+    "departmentId": "2b3c4d5e-...-0003",
+    "overtime": [],
+    "specialization": "Eye"
   }
 ]

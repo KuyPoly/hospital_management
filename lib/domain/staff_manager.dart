@@ -38,31 +38,6 @@ class StaffManager {
     return null;
   }
 
-  Department createDepartmentIfMissing(DepartmentType type, {String desc = ''}) {
-    final existing = findDepartmentByType(type);
-    if (existing != null) return existing;
-    final d = Department(type: type, desc: desc);
-    addDepartment(d);
-    return d;
-  }
-
-  //Replace the department's description.
-  void updateDepartmentDescription(String depId, String newDesc) {
-    final idx = _departmentList.indexWhere((d) => d.depId == depId);
-    if (idx == -1) {
-      throw ArgumentError('Department not found: $depId');
-    }
-    final old = _departmentList[idx];
-    final replaced = Department(depId: old.depId, type: old.type, desc: newDesc);
-    // preserve staff assignment using public API
-    for (final sid in old.staffIds) {
-      final s = findStaffById(sid);
-      if (s != null) {
-        replaced.addStaff(s);
-      }
-    }
-    _departmentList[idx] = replaced;
-  }
 
   //Remove a department entry and clear departmentId from all associated staff.
   bool removeDepartment(String depId) {
@@ -144,7 +119,7 @@ class StaffManager {
     final overtime = Overtime(date: otDay, hours: hours, rate: resolvedRate);
     staff.addOvertime(overtime);
 
-    // the overtime pay so total salary includes the overtime amount exactly once.
+    
     final overtimePay = overtime.calculateOvertimePay();
     staff.addBonus(overtimePay);
   }

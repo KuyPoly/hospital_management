@@ -23,16 +23,16 @@ This project is a simple console-based Hospital Management System built with Dar
 
 ## How to run
 1. clone this project
-https://github.com/KuyPoly/hospital_management.git
+  - https://github.com/KuyPoly/hospital_management.git
 
 2. nevigate to the project
-cd hospital_management
+  - cd hospital_management
 
 3. run the main program
-dart run
+  - dart run
 
 4. to run unit test
-dart test
+  - dart test
 
 ## Running tests
 - Run all tests:
@@ -40,7 +40,7 @@ dart test
 
 
 ## Data format examples
-Staff (partial):
+Staff :
 ```json
 {
   "type": "doctor",
@@ -57,7 +57,7 @@ Staff (partial):
 }
 ```
 
-Department (normalized):
+Department :
 ```json
 {
   "depId": "fa80a709-4d21-4033-a89f-614cb29f3eb1",

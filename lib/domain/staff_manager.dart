@@ -100,7 +100,7 @@ class StaffManager {
     return _staffList.where((s) => s.role == role).toList();
   }
 
-  // doctor -> 10%  nurse -> 8%  administrationStaff -> 8%
+  // doctor -> 8%  nurse -> 5%  administrationStaff -> 5%
   void approveOvertime(Staff staff, {required DateTime date, required int hours, double? rate}) {
     if (hours <= 0) {
       throw ArgumentError('Overtime hours must be > 0');

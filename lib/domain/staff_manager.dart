@@ -100,15 +100,8 @@ class StaffManager {
     return _staffList.where((s) => s.role == role).toList();
   }
 
-  // Approve overtime same as before but using domain only
-  // Default overtime rate now computed as percentage of baseSalary:
   // doctor -> 10%  nurse -> 8%  administrationStaff -> 8%
-  void approveOvertime(
-    Staff staff, {
-    required DateTime date,
-    required int hours,
-    double? rate,
-  }) {
+  void approveOvertime(Staff staff, {required DateTime date, required int hours, double? rate}) {
     if (hours <= 0) {
       throw ArgumentError('Overtime hours must be > 0');
     }
@@ -143,19 +136,19 @@ class StaffManager {
     } else {
       // compute default as percentage of baseSalary
       final pct = staff.role == Role.doctor
-          ? 0.10
+          ? 0.08
           : staff.role == Role.nurse
-              ? 0.08
-              : 0.08;
+              ? 0.05
+              : 0.05;
       resolvedRate = staff.baseSalary * pct;
-      final isWeekend =
-          otDay.weekday == DateTime.saturday || otDay.weekday == DateTime.sunday;
-      if (isWeekend) {
-        resolvedRate *= 1.25;
-      }
     }
 
     final overtime = Overtime(date: otDay, hours: hours, rate: resolvedRate);
     staff.addOvertime(overtime);
+
+    // Domain policy (Option B): treat the approved overtime as a bonus equal to
+    // the overtime pay so total salary includes the overtime amount exactly once.
+    final overtimePay = overtime.calculateOvertimePay();
+    staff.addBonus(overtimePay);
   }
 }

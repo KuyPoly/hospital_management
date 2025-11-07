@@ -68,10 +68,98 @@
     "gender": "female",
     "role": "doctor",
     "baseSalary": 1443.0,
+    "bonusSalary": 461.76,
+    "experienceYear": 2,
+    "departmentId": null,
+    "overtime": [
+      {
+        "overtimeId": "e92e741c-0fc0-4ee2-9865-2a8899db0afc",
+        "date": "2025-11-07T00:00:00.000",
+        "hours": 4,
+        "rate": 115.44
+      }
+    ],
+    "specialization": "Eye"
+  },
+  {
+    "type": "doctor",
+    "staffId": "32ea3f5f-5945-44c0-b61a-25ab3b30ac20",
+    "name": "Kuy Poly",
+    "email": "poly@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "female",
+    "role": "doctor",
+    "baseSalary": 1500.0,
     "bonusSalary": 0.0,
     "experienceYear": 2,
-    "departmentId": "fa80a709-4d21-4033-a89f-614cb29f3eb1",
+    "departmentId": null,
     "overtime": [],
     "specialization": "Eye"
+  },
+  {
+    "type": "doctor",
+    "staffId": "7fbfa64e-0817-4ba7-8514-9da27fb4f409",
+    "name": "ly",
+    "email": "ly@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "male",
+    "role": "doctor",
+    "baseSalary": 2000.0,
+    "bonusSalary": 120.0,
+    "experienceYear": 4,
+    "departmentId": null,
+    "overtime": [
+      {
+        "overtimeId": "b211c946-72d5-41ae-90bd-a5db8e1e9374",
+        "date": "2025-11-07T00:00:00.000",
+        "hours": 3,
+        "rate": 40.0
+      }
+    ],
+    "specialization": "Skin"
+  },
+  {
+    "type": "doctor",
+    "staffId": "eecddb81-d48a-4857-8444-4aab63a966a4",
+    "name": "Ka",
+    "email": "ka@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "female",
+    "role": "doctor",
+    "baseSalary": 2000.0,
+    "bonusSalary": 2.0,
+    "experienceYear": 2,
+    "departmentId": null,
+    "overtime": [
+      {
+        "overtimeId": "d584f77c-5e1f-4066-bb5d-adc3545881cc",
+        "date": "2025-11-07T00:00:00.000",
+        "hours": 2,
+        "rate": 10.0
+      }
+    ],
+    "specialization": "Eye"
+  },
+  {
+    "type": "doctor",
+    "staffId": "856a50d9-fd83-41f9-91b4-014ceaf74ce2",
+    "name": "ly",
+    "email": "ly@gmail.com",
+    "phoneNum": "0123456789",
+    "gender": "male",
+    "role": "doctor",
+    "baseSalary": 2000.0,
+    "bonusSalary": 1.6,
+    "experienceYear": 3,
+    "departmentId": null,
+    "overtime": [
+      {
+        "overtimeId": "d5fc5736-6d51-4779-806b-8dd9a92401b6",
+        "date": "2025-11-07T00:00:00.000",
+        "hours": 2,
+        "rate": 8.0
+      }
+    ],
+    "specialization": "eye"
   }
 ]

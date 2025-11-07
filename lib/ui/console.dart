@@ -295,7 +295,14 @@ class Console {
     if (assign == 'y' || assign == 'yes') {
       final dept = await _chooseDepartmentOrCreate();
       if (dept != null) {
-        dept.addStaff(staff);
+        // Avoid duplicate assignment if already present
+        if (!dept.staffIds.contains(staff.staffId)) {
+          dept.addStaff(staff);
+        } else {
+          print('Staff already assigned to department ${dept.name}.');
+        }
+        // Ensure staff record references the department
+        staff.departmentId = dept.depId;
       }
     }
 
@@ -314,39 +321,27 @@ class Console {
   }
 
   Future<Department?> _chooseDepartmentOrCreate() async {
+    final deps = staffManager.departmentList;
+    if (deps.isEmpty) {
+      print('No departments available to assign. You can assign later from the domain or add departments outside this UI.');
+      return null;
+    }
+
     print('Departments:');
-    for (var i = 0; i < staffManager.departmentList.length; i++) {
-      final d = staffManager.departmentList[i];
+    for (var i = 0; i < deps.length; i++) {
+      final d = deps[i];
       print('$i) ${d.name} (${d.depId}) - ${d.desc} [staff: ${d.staffIds.length}]');
     }
-    for (var i = 0; i < DepartmentType.values.length; i++) {
-      print('t$i) ${DepartmentType.values[i].displayName}');
-    }
-    print('c) Create new department entry (choose type + desc)');
     print('x) Cancel');
+
     while (true) {
-      final sel = _read('Choose department index, "t<idx>", "c" or "x": ').toLowerCase();
+      final sel = _read('Choose department index or "x": ').toLowerCase();
       if (sel == 'x') return null;
-      if (sel == 'c') {
-        final typeIndex = _readInt('Department type index: ', min: 0, max: DepartmentType.values.length - 1);
-        final desc = _read('Description (optional): ');
-        final dept = staffManager.createDepartmentIfMissing(DepartmentType.values[typeIndex], desc: desc);
-        return dept;
-      }
-      if (sel.startsWith('t')) {
-        final idx = int.tryParse(sel.substring(1));
-        if (idx != null && idx >= 0 && idx < DepartmentType.values.length) {
-          final chosen = DepartmentType.values[idx];
-          final dept = staffManager.createDepartmentIfMissing(chosen, desc: '');
-          return dept;
-        }
-      }
       final idx = int.tryParse(sel);
-      if (idx != null && idx >= 0 && idx < staffManager.departmentList.length) {
-        final chosen = staffManager.departmentList[idx];
-        return chosen;
+      if (idx != null && idx >= 0 && idx < deps.length) {
+        return deps[idx];
       }
-      print('Invalid selection.');
+      print('Invalid selection. Enter a department index or "x" to cancel.');
     }
   }
 
@@ -458,7 +453,21 @@ class Console {
           d.removeStaff(updated);
         }
       }
-      chosenDept.addStaff(updated);
+      // Add only if not already present and set reference on staff
+      if (!chosenDept.staffIds.contains(updated.staffId)) {
+        chosenDept.addStaff(updated);
+      }
+      updated.departmentId = chosenDept.depId;
+    } else if (updated.departmentId != null) {
+      // If user did not change department, re-attach the updated staff to the existing dept
+      // (removeStaff(old) may have removed the id from the department list)
+      final idx = staffManager.departmentList.indexWhere((d) => d.depId == updated.departmentId);
+      if (idx != -1) {
+        final existingDept = staffManager.departmentList[idx];
+        if (!existingDept.staffIds.contains(updated.staffId)) {
+          existingDept.addStaff(updated);
+        }
+      }
     }
 
     await _persist();
@@ -604,13 +613,16 @@ class Console {
     if (rateInput.toLowerCase() == 'x') { await _pauseAndClear(); return; }
 
     try {
-      StaffService.approveOvertimeFromInput(staffManager, staff, dateStr: dateStr, hours: hours, rateStr: rateInput.trim().isEmpty ? null : rateInput);
-      // add bonus when overtime approved (10% of overtime pay)
-      final lastOt = staff.overtimeList.isNotEmpty ? staff.overtimeList.last : null;
-      if (lastOt != null) {
-        final bonus = lastOt.calculateOvertimePay() * 0.10;
-        staff.addBonus(bonus);
-      }
+      StaffService.approveOvertimeFromInput(
+        staffManager,
+        staff,
+        dateStr: dateStr,
+        hours: hours,
+        rateStr: rateInput.trim().isEmpty ? null : rateInput,
+      );
+
+      // Bonus is handled by StaffManager.approveOvertime (domain). Do not add here.
+
       await _persist();
       print('Overtime approved for ${staff.name}');
     } catch (e) {

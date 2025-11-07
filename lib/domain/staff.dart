@@ -84,7 +84,6 @@ class Staff {
     final base = _baseSalary.toStringAsFixed(2);
     final bonus = _bonusSalary.toStringAsFixed(2);
     final otCount = _overtimeList.length;
-    final otPay = totalOvertimePay().toStringAsFixed(2);
     final total = calculateSalary().toStringAsFixed(2);
 
     final sb = StringBuffer();
@@ -98,7 +97,7 @@ class Staff {
     sb.writeln('Experience: $_experienceYear year(s)');
     sb.writeln('Base pay  : \$$base');
     sb.writeln('Bonus     : \$$bonus');
-    sb.writeln('Overtime  : count=$otCount  total=\$$otPay');
+    sb.writeln('Overtime  : $otCount times');
     sb.writeln('Total pay : \$$total');
     return sb.toString();
   }
